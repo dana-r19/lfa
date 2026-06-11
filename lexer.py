@@ -19,15 +19,15 @@ class Token:
     def __repr__(self):
         return f"Token({self.type.name}, '{self.value}')"
 
-# Association matrix tying TokenTypes to Explicit Regular Expression strings
+# Regex rules for matching tokens sequentially
 TOKEN_REGEX = [
-    (TokenType.KEYWORD, r'^(if|else|while|return|int|float)\\b'),
+    (TokenType.KEYWORD, r'^(if|else|while|return|int|float)\b'),
     (TokenType.IDENTIFIER, r'^[a-zA-Z_][a-zA-Z0-9_]*'),
-    (TokenType.NUMBER, r'^\\d+(\\.\\d+)?'),
+    (TokenType.NUMBER, r'^\d+(\.\d+)?'),
     (TokenType.ASSIGN, r'^='),
-    (TokenType.OPERATOR, r'^[+\\-*/]'),
-    (TokenType.LPAREN, r'^\\('),
-    (TokenType.RPAREN, r'^\\)'),
+    (TokenType.OPERATOR, r'^[+\-**/]'),
+    (TokenType.LPAREN, r'^\('),
+    (TokenType.RPAREN, r'^\)'),
     (TokenType.SEMICOLON, r'^;'),
 ]
 
@@ -39,8 +39,8 @@ class Lexer:
     def tokenize(self):
         tokens = []
         while self.position < len(self.text):
-            # Strip preceding whitespace characters
-            whitespace_match = re.match(r'^\\s+', self.text[self.position:])
+            # Skip whitespace
+            whitespace_match = re.match(r'^\s+', self.text[self.position:])
             if whitespace_match:
                 self.position += whitespace_match.end()
                 continue
@@ -58,6 +58,6 @@ class Lexer:
                     break
             
             if not matched:
-                raise SyntaxError(f"Illegal character identified at sequence position: '{self.text[self.position]}'")
+                raise SyntaxError(f"Illegal character at position {self.position}: '{self.text[self.position]}'")
         
         return tokens
