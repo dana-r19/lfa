@@ -57,7 +57,7 @@ class Parser:
         raise SyntaxError(f"Expected token {expected_type.name}, found: {actual}")
 
     def parse(self) -> ASTNode:
-        # Top-level handler: handles syntax patterns starting with variable assignments
+        # Check for assignment statement: variable = expression
         if self.peek() and self.peek().type == TokenType.IDENTIFIER:
             if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == TokenType.ASSIGN:
                 id_token = self.consume(TokenType.IDENTIFIER)
@@ -69,7 +69,7 @@ class Parser:
         return self.parse_expression()
 
     def parse_expression(self) -> ASTNode:
-        # Handles low precedence binary arithmetic layers (+, -)
+        # Handles low precedence operators (+, -)
         left = self.parse_term()
         while self.peek() and self.peek().type == TokenType.OPERATOR and self.peek().value in ('+', '-'):
             op_token = self.consume(TokenType.OPERATOR)
@@ -78,7 +78,7 @@ class Parser:
         return left
 
     def parse_term(self) -> ASTNode:
-        # Handles higher precedence binary arithmetic layers (*, /)
+        # Handles high precedence operators (*, /)
         left = self.parse_factor()
         while self.peek() and self.peek().type == TokenType.OPERATOR and self.peek().value in ('*', '/'):
             op_token = self.consume(TokenType.OPERATOR)
@@ -87,7 +87,7 @@ class Parser:
         return left
 
     def parse_factor(self) -> ASTNode:
-        # Lowest atomic elements (Integers, variable strings, parenthesis logic)
+        # Handles numbers, variables, and parenthesis groups
         token = self.peek()
         if token and token.type == TokenType.NUMBER:
             self.consume(TokenType.NUMBER)
