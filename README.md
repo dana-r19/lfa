@@ -1,28 +1,181 @@
-Laboratory Work 1: Intro to Formal Languages. Regular Grammars. Finite Automata
-Course: Formal Languages & Finite Automata
-Author: Romanov Dana
-Variant 22
+# Laboratory Work 1: Intro to Formal Languages. Regular Grammars. Finite Automata
 
-Objectives
-This laboratory work aimed to discover what a formal language is and what components it needs to have in order to be considered formal. The project required setting up a GitHub repository to store and update the work throughout the semester. A programming language was to be chosen that would make the implementation straightforward without unnecessary complexity. The main technical objectives included implementing a class for the given grammar, adding functionality to generate five valid strings from the language expressed by the grammar, converting the grammar object to a finite automaton, and implementing a method in the finite automaton that checks whether an input string can be obtained via state transitions.
+**Course:** Formal Languages & Finite Automata  
+**Author:** Romanov Dana
+**Variant:** 22
 
-Theoretical Background
-A formal language can be considered the medium or format used to convey information from a sender entity to the one that receives it. The usual components of a language are the alphabet, which is the set of valid characters, the vocabulary, which is the set of valid words, and the grammar, which is the set of rules or constraints over the language. These components can be established in an infinite amount of configurations, meaning that whenever a language is being created, its components should be selected to make it as appropriate for its use case as possible. Sometimes it is a matter of preference, which is why many natural, programming, and markup languages exist that might accomplish the same thing.
+---
 
-A regular grammar is a formal grammar that describes a regular language. It has restrictions on the form of its production rules. A finite automaton is a mathematical model of computation with a finite number of states. It transitions between states based on input symbols and accepts or rejects strings based on whether it ends in a final state. Any regular grammar can be converted into an equivalent finite automaton, which is the core relationship explored in this laboratory work.
+# Objectives
 
-Implementation
-The implementation was done in Python due to its simplicity and readability. The project consists of three main files: grammar.py, finite_automaton.py, and main.py. The Grammar class contains the definition of the formal grammar including the sets of non-terminals and terminals, the production rules, and the start symbol. Its generate_string method repeatedly replaces non-terminal symbols with randomly chosen productions until only terminal symbols remain. This method implements a safety limit to prevent infinite loops and recursively calls itself if non-terminals still appear after processing.
+The objectives of this laboratory work were:
 
-The to_finite_automaton method converts the grammar into a finite automaton. For each production rule, the method creates corresponding transitions. When a production has the form of a single terminal symbol, it creates a transition from the non-terminal state to a special final state upon reading that terminal. When a production has the form of a terminal followed by a non-terminal, it creates a transition from the first non-terminal to the second non-terminal upon reading the terminal. The FiniteAutomaton class maintains the set of states, the alphabet, the transition function delta, the initial state, and the set of final states. Its string_belongs_to_language method simulates the automaton by processing each character of the input string and following the transitions defined in delta. If after processing all characters the automaton is in a final state, the string is accepted.
+- Understand the concept of a formal language and its components.
+- Create and configure a GitHub repository for the laboratory works.
+- Choose an appropriate programming language for the implementation.
+- Implement a class representing a regular grammar.
+- Generate five valid strings using the grammar.
+- Convert the grammar into an equivalent finite automaton.
+- Implement a method that verifies whether a string belongs to the language accepted by the automaton.
 
-The main function demonstrates all the required functionality. It creates an instance of the Grammar class with the specific rules from Variant 22. It then calls generate_string five times to produce valid strings from the language. After that, it converts the grammar to a finite automaton and displays the resulting states, alphabet, transitions, initial state, and final states. Finally, it tests several strings, including the generated ones and some custom test cases, to verify whether they belong to the language recognized by the finite automaton.
+---
 
-Results
-For Variant 22, the grammar was defined with non-terminals S, D, and F, terminals a, b, c, and d, and the production rules as specified in the assignment. The generate_string method produced five valid strings from this grammar. Examples of generated strings included sequences such as cda, cdaa, and cdba, all consisting only of terminal symbols. The conversion from grammar to finite automaton successfully created states corresponding to S, D, F, and a final state. Transitions were correctly derived from the production rules, for example from state S reading c going to state D, from state D reading d going to state D, and from state D reading a going to the final state. The string_belongs_to_language method correctly accepted strings like cda and cdaa while rejecting strings like aa or any string containing non-terminal symbols. The finite automaton proved to be equivalent to the original grammar, accepting exactly the same language.
+# Theoretical Background
 
-Conclusions
-This laboratory work successfully achieved all the stated objectives. A formal grammar was implemented and used to generate valid strings, demonstrating understanding of how production rules are applied recursively. The conversion from grammar to finite automaton illustrated the theoretical equivalence between regular grammars and finite automata. The string validation method showed how an automaton can deterministically decide membership in a formal language. Python proved to be an excellent choice for this task, allowing focus on the conceptual aspects rather than implementation overhead. The GitHub repository was set up and will serve as the foundation for future laboratory works in this course. The knowledge gained about formal languages, regular grammars, and finite automata provides a solid basis for understanding more complex computational models and language theory concepts.
+A **formal language** is a structured way of representing information through a set of symbols and rules. It is composed of:
 
-References
-Cretu Dumitru, Formal Languages & Finite Automata course materials. Vasile Drumea with Irina Cojuhari, additional course resources. Python documentation for the random module and basic data structures. Formal language theory concepts as covered in standard computer science curriculum.
+- **Alphabet** – the set of valid symbols.
+- **Vocabulary** – the set of valid words formed from the alphabet.
+- **Grammar** – the production rules that define the language.
+
+A **regular grammar** is a type of formal grammar with production rules that generate **regular languages**.
+
+A **finite automaton (FA)** is a mathematical model consisting of:
+
+- a finite set of states,
+- an input alphabet,
+- a transition function,
+- an initial state,
+- one or more final states.
+
+A finite automaton accepts a string if, after processing all input symbols, it ends in a final state. Every regular grammar has an equivalent finite automaton, which recognizes exactly the same language.
+
+---
+
+# Implementation
+
+The project was implemented in **Python** because of its simplicity and readability.
+
+## Project Structure
+
+```
+lab1/
+│
+├── grammar.py
+├── finite_automaton.py
+├── main.py
+└── README.md
+```
+
+## Grammar Class
+
+The `Grammar` class contains:
+
+- non-terminal symbols;
+- terminal symbols;
+- production rules;
+- start symbol.
+
+### `generate_string()`
+
+This method:
+
+1. Starts from the start symbol.
+2. Randomly selects production rules.
+3. Replaces non-terminals until only terminal symbols remain.
+4. Uses a safety limit to avoid infinite recursion.
+
+## Conversion to Finite Automaton
+
+The `to_finite_automaton()` method creates an equivalent FA.
+
+Conversion rules:
+
+- Production `A → a` becomes a transition from state `A` to the final state on symbol `a`.
+- Production `A → aB` becomes a transition from state `A` to state `B` on symbol `a`.
+
+## FiniteAutomaton Class
+
+The automaton stores:
+
+- states;
+- alphabet;
+- transition function (`delta`);
+- initial state;
+- final states.
+
+### `string_belongs_to_language()`
+
+The method:
+
+1. Reads the input string symbol by symbol.
+2. Follows the corresponding transitions.
+3. Accepts the string if the final state is reached after processing the entire input.
+
+---
+
+# Results
+
+For **Variant 22**, the grammar consists of:
+
+- **Non-terminals:** `S`, `D`, `F`
+- **Terminals:** `a`, `b`, `c`, `d`
+
+The implemented generator successfully produced five valid strings.
+
+Example outputs:
+
+```
+cda
+cdaa
+cdba
+...
+```
+
+The grammar was successfully converted into an equivalent finite automaton with:
+
+- States: `S`, `D`, `F`, `Final`
+- Correct transitions generated from the production rules
+- Proper initial and final states
+
+### String Validation
+
+Accepted examples:
+
+```
+cda
+cdaa
+cdba
+```
+
+Rejected examples:
+
+```
+aa
+SD
+abcS
+```
+
+The automaton accepts exactly the same language generated by the regular grammar.
+
+---
+
+# Conclusions
+
+The objectives of the laboratory work were successfully completed.
+
+The implementation demonstrated:
+
+- the structure of a formal grammar;
+- recursive generation of valid strings;
+- conversion from a regular grammar to a finite automaton;
+- validation of strings through state transitions.
+
+Python proved to be an appropriate language for focusing on the theoretical concepts without unnecessary implementation complexity.
+
+The GitHub repository created for this laboratory will also serve as the foundation for future assignments in the course.
+
+---
+
+# References
+
+1. Cretu Dumitru – *Formal Languages & Finite Automata* course materials.
+2. Vasile Drumea & Irina Cojuhari – additional course resources.
+3. Python Documentation – `random` module and basic data structures.
+4. Standard computer science literature on formal language theory.
+
+---
+
+# GitHub Repository
+
+https://github.com/dana-r19/lfa/compare/lab1?expand=1
