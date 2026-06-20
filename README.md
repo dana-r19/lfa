@@ -1,330 +1,217 @@
-# Laboratory Work 2: Finite Automata and Grammar Conversion
+# Laboratory Work 3: Lexer & Scanner
 
 **Course:** Formal Languages & Finite Automata  
 **Author:** Romanov Dana
-**Variant:** 22  
-
 
 ---
 
-# Introduction
+# Objectives
 
-This laboratory work explores finite automata and their relationship with formal grammars. The implementation focuses on:
+The objectives of this laboratory work are:
 
-- analyzing deterministic and non-deterministic finite automata;
-- converting a finite automaton into a regular grammar;
-- converting an NDFA into an equivalent DFA using subset construction;
-- classifying the resulting grammar according to the Chomsky hierarchy.
+- Understand the role of lexical analysis in compilers and interpreters.
+- Explore how a lexer (scanner/tokenizer) transforms a stream of characters into meaningful tokens.
+- Implement a lexer for a Mini-Math Language that extends the functionality of a basic calculator.
 
 ---
 
 # Theoretical Background
 
-## Finite Automata
+Lexical analysis is the first stage of compilation. During this phase, the source code is read character by character and divided into **tokens**, which are meaningful units used by later compilation stages such as parsing and semantic analysis.
 
-A finite automaton is a mathematical model of computation defined by the 5-tuple:
+Typical token categories include:
 
-**(Q, Σ, δ, q₀, F)**
+- identifiers;
+- keywords;
+- numeric literals;
+- operators;
+- punctuation symbols.
 
-where:
-
-- **Q** – finite set of states;
-- **Σ** – input alphabet;
-- **δ** – transition function;
-- **q₀** – initial state;
-- **F** – set of accepting states.
-
-A string is accepted if, after processing all symbols, the automaton reaches a final state.
-
-## Deterministic vs Non-deterministic Finite Automata
-
-### DFA
-
-A deterministic finite automaton has exactly one transition for every combination of state and input symbol.
-
-### NDFA
-
-A non-deterministic finite automaton may:
-
-- have multiple transitions for the same input symbol;
-- optionally include ε-transitions.
-
-Although their behavior differs, DFAs and NDFAs recognize exactly the same class of languages.
-
-## Chomsky Hierarchy
-
-Formal grammars are divided into four classes:
-
-| Type | Name | Production Form |
-|----------|--------------------|----------------------------|
-| Type 0 | Unrestricted | No restrictions |
-| Type 1 | Context-Sensitive | αAβ → αγβ |
-| Type 2 | Context-Free | A → γ |
-| Type 3 | Regular | A → aB or A → a |
-
-Regular grammars are equivalent in expressive power to finite automata.
+A lexer can be implemented using **regular expressions**, which correspond to **deterministic finite automata (DFA)**. This makes lexical analysis both efficient and easy to extend.
 
 ---
 
 # Implementation
 
-## Variant 22 Specification
+## Overview
 
-### States
+The implemented lexer provides tokenization for a **Mini-Math Language** with features beyond a simple calculator.
 
-```
-Q = {q0, q1, q2}
-```
+Supported elements include:
 
-### Alphabet
+- integer literals;
+- floating-point literals;
+- arithmetic operators (`+`, `-`, `*`, `/`, `^`);
+- trigonometric functions (`sin`, `cos`, `tan`);
+- variable identifiers;
+- comparison operators (`==`, `!=`, `<`, `>`);
+- assignment operator (`=`);
+- parentheses and commas;
+- single-line comments (`//`).
 
-```
-Σ = {a, b}
-```
-
-### Final States
-
-```
-F = {q2}
-```
-
-### Transition Function
-
-```
-δ(q0, a) = q0
-δ(q0, b) = q1
-
-δ(q1, a) = q0
-δ(q1, b) = {q1, q2}
-
-δ(q2, b) = q1
-```
-
-Because the transition
-
-```
-δ(q1, b) = {q1, q2}
-```
-
-has two possible destinations, the automaton is **non-deterministic**.
+Whitespace and comments are ignored while preserving accurate line and column information.
 
 ---
 
-## Determinism Verification
+# Lexer Architecture
 
-The implementation verifies determinism by checking that every state/input pair has exactly one transition.
+The lexer follows a **regex-based deterministic finite automaton approach**.
 
-If:
+Each token is defined through:
 
-- multiple transitions exist, or
-- a transition is missing,
+- a regular expression;
+- a token type;
+- an optional value transformer.
 
-the automaton is classified as non-deterministic.
+All patterns are combined into a single master regular expression using named groups, allowing the source code to be scanned in a single left-to-right pass.
 
----
+For every match, the lexer:
 
-## Finite Automaton → Regular Grammar
+1. identifies the corresponding token type;
+2. transforms the value if necessary;
+3. updates line and column positions;
+4. emits the resulting token.
 
-The conversion follows these rules:
+Whitespace and comments are skipped automatically.
 
-```
-δ(A, a) = B
-```
-
-becomes
-
-```
-A → aB
-```
-
-For every final state:
-
-```
-F → ε
-```
-
-is added.
-
-The grammar start symbol is the automaton's initial state.
+When the end of the source is reached, an **EOF** token is generated.
 
 ---
 
-## NDFA → DFA Conversion
+# Main Components
 
-The subset construction algorithm is used.
+## Token Class
 
-Steps:
+The `Token` dataclass contains:
 
-1. Start with the set containing the NFA initial state.
-2. Compute reachable sets for every input symbol.
-3. Create new DFA states when new subsets appear.
-4. Mark every subset containing an NFA final state as accepting.
-5. Continue until no new subsets are generated.
+- token type;
+- token value;
+- line number;
+- column number.
 
-Generated subsets are renamed to simpler identifiers:
-
-```
-S0
-S1
-S2
-```
+This information is preserved for later compilation stages and error reporting.
 
 ---
 
-## Chomsky Hierarchy Classification
+## Lexer Class
 
-The classifier analyzes all production rules.
+The lexer maintains:
 
-It checks whether productions satisfy:
+- the source code;
+- current position;
+- current line;
+- current column.
 
-- **Type 3:** `A → aB` or `A → a`
-- **Type 2:** `A → γ`
-- **Type 1:** context-sensitive restrictions
-- **Type 0:** unrestricted productions
+Token specifications are stored as tuples containing:
+
+- regex pattern;
+- token type;
+- transformer function.
+
+A keywords dictionary distinguishes built-in functions from ordinary identifiers.
+
+Example:
+
+```
+sin → SIN
+cos → COS
+tan → TAN
+```
+
+instead of treating them as variable names.
 
 ---
 
-# Results
+# Core Algorithm
 
-## Determinism Analysis
+The `get_next_token()` method performs the following steps:
 
-The automaton is classified as **non-deterministic** because:
+1. Check whether the end of the source has been reached.
+2. Match the master regular expression at the current position.
+3. If no match exists, generate an `ERROR` token.
+4. Update the current position, line, and column.
+5. Determine the matched token type.
+6. Convert values when necessary.
+7. Skip whitespace and comments.
+8. Return the generated token.
 
-```
-δ(q1, b) = {q1, q2}
-```
-
-contains two possible next states.
-
-All remaining transitions are deterministic.
-
----
-
-## Regular Grammar
-
-The generated grammar consists of:
-
-### Non-terminals
-
-```
-{q0, q1, q2}
-```
-
-### Terminals
-
-```
-{a, b}
-```
-
-### Production Rules
-
-```
-q0 → aq0 | bq1
-
-q1 → bq1 | bq2 | aq0
-
-q2 → bq1 | ε
-```
-
-The grammar is right-linear since every production follows the form:
-
-```
-A → aB
-```
-
-or
-
-```
-A → a
-```
-
-or
-
-```
-A → ε
-```
+The `tokenize()` method repeatedly calls `get_next_token()` until an `EOF` or `ERROR` token is encountered, collecting all generated tokens into a list.
 
 ---
 
-## Chomsky Classification
+# Additional Features
 
-The grammar is classified as **Type 3 (Regular Grammar)**.
+Compared to a basic calculator lexer, this implementation supports:
 
-This result is expected because it was generated directly from a finite automaton, and regular grammars are equivalent to finite automata.
+- floating-point numbers;
+- power operator (`^`);
+- trigonometric functions;
+- comparison operators;
+- variable identifiers;
+- comments;
+- automatic numeric conversion;
+- line and column tracking.
 
----
+Variable names may contain:
 
-## NDFA to DFA Conversion
+- letters;
+- digits;
+- underscores,
 
-The subset construction algorithm produced the following DFA:
-
-| DFA State | NFA States |
-|------------|----------------|
-| S0 | {q0} |
-| S1 | {q0, q1} |
-| S2 | {q0, q1, q2} |
-
-### DFA Transition Function
-
-```
-δ(S0, a) = S0
-δ(S0, b) = S1
-
-δ(S1, a) = S0
-δ(S1, b) = S2
-
-δ(S2, a) = S0
-δ(S2, b) = S2
-```
-
-### Final State
-
-```
-S2
-```
-
-since it contains the NFA final state `q2`.
-
-The resulting automaton is fully deterministic.
+but cannot begin with a digit.
 
 ---
 
-# Visual Representation
+# Example
 
-The project generates Graphviz **DOT** files for both the original NDFA and the converted DFA.
+## Input
 
-They can be rendered with:
-
-```bash
-dot -Tpng filename.dot -o filename.png
+```text
+x = 3.14 + sin(45)
 ```
 
-The generated diagrams display:
+## Generated Tokens
 
-- states as nodes;
-- accepting states as double circles;
-- the start state with an incoming arrow;
-- labeled transitions between states.
+| Token | Value |
+|----------------|---------|
+| VARIABLE | `x` |
+| ASSIGN | `=` |
+| FLOAT | `3.14` |
+| PLUS | `+` |
+| SIN | `sin` |
+| LPAREN | `(` |
+| INTEGER | `45` |
+| RPAREN | `)` |
+| EOF | `None` |
 
-The NDFA visualization highlights the two transitions from `q1` on input `b`, while the DFA contains exactly one transition for every state-symbol pair.
+Each token also stores its corresponding line and column position within the source code.
 
 ---
 
 # Conclusions
 
-The objectives of this laboratory work were successfully achieved.
+The laboratory successfully demonstrates both the theoretical and practical aspects of lexical analysis.
 
-The implementation:
+The implementation confirms that:
 
-- correctly identified the automaton as non-deterministic;
-- converted the automaton into an equivalent regular grammar;
-- classified the grammar as **Type 3** in the Chomsky hierarchy;
-- converted the NDFA into an equivalent DFA using subset construction.
+- lexical analysis transforms raw source code into structured tokens;
+- regular expressions provide an efficient mechanism for token recognition;
+- a regex-based lexer is simple to maintain and extend.
 
-These results demonstrate the equivalence between finite automata and regular grammars while providing practical experience with automata transformations and formal language theory.
+The modular design allows new operators, keywords, or literal types to be added by introducing additional token specifications without modifying the core algorithm.
+
+Compared to a basic calculator lexer, the implementation includes support for floating-point numbers, power operations, trigonometric functions, comparison operators, variables, comments, and detailed position tracking, resulting in a flexible and extensible lexical analyzer.
+
+---
+
+# References
+
+1. Aho, Sethi & Ullman – **Compilers: Principles, Techniques, and Tools**.
+2. Course materials on regular expressions and deterministic finite automata.
+3. Python `re` module documentation.
 
 ---
 
 # Repository
 
-https://github.com/dana-r19/lfa/pull/1
+https://github.com/dana-r19/lfa/pull/2
