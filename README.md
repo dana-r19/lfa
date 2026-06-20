@@ -1,7 +1,7 @@
 Laboratory Report: Finite Automata and Grammar Conversion
 Course Information
 Course: Formal Languages & Finite Automata
-Author: Cretu Dumitru
+Author: Romanov Dana
 Variant: 22
 Date: April 6, 2026
 
