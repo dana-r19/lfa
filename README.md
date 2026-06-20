@@ -3,7 +3,7 @@ Course
 Formal Languages & Finite Automata
 
 Author
-Cretu Dumitru
+Romanov Dana
 
 Objectives
 This laboratory work has three main objectives. The first objective is to understand what lexical analysis is and why it represents a fundamental stage in compilers and interpreters. The second objective is to get familiar with the inner workings of a lexer, scanner, or tokenizer, including how it processes raw character streams and produces structured tokens. The third objective is to implement a sample lexer that demonstrates these concepts in practice, going beyond a simple calculator to include features like floating-point numbers, trigonometric functions, and comparison operators.
