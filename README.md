@@ -1,6 +1,6 @@
 Laboratory Work 1: Intro to Formal Languages. Regular Grammars. Finite Automata
 Course: Formal Languages & Finite Automata
-Author: Cretu Dumitru
+Author: Romanov Dana
 Variant 22
 
 Objectives
